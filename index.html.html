@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lista mailingowa uczniów</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121933;
+      --accent: #7aa2ff;
+      --accent-2: #a6e3a1;
+      --text: #e6e9f2;
+      --muted: #b6bed4;
+      --danger: #ff7a7a;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, #15214d 0%, var(--bg) 70%);
+      color: var(--text);
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 20px 64px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap; }
+    h1 { font-size: clamp(22px, 3vw, 32px); margin: 0; letter-spacing: 0.3px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.35); border-radius: 16px; }
+    .form-card { padding: 20px; display:grid; gap:14px; }
+    .row { display:flex; gap:10px; flex-wrap: wrap; }
+    label { font-size: 14px; color: var(--muted); }
+    input[type="email"], input[type="text"] {
+      width: 100%; padding: 14px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+      background: #0f1630; color: var(--text); outline: none; font-size: 16px;
+    }
+    input[type="email"]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(122,162,255,0.15); }
+    .actions { display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+    button, .btn {
+      appearance: none; border: 1px solid rgba(255,255,255,0.12); background: var(--card); color: var(--text);
+      padding: 12px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: transform .04s ease, box-shadow .2s ease, background .2s ease; text-decoration: none; display:inline-flex; gap:8px; align-items:center;
+    }
+    button.primary { background: linear-gradient(180deg, #1a3a9e, #112b7c); border-color: rgba(122,162,255,0.4); }
+    button.primary:hover { box-shadow: 0 12px 24px rgba(122,162,255,0.25); transform: translateY(-1px); }
+    .btn.secondary:hover, button:hover { transform: translateY(-1px); }
+    .muted { color: var(--muted); font-size: 14px; }
+    .note { font-size: 13px; color: var(--muted); }
+    .list-card { margin-top: 18px; padding: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 15px; }
+    th { color: var(--muted); font-weight: 600; }
+    .badge { background: rgba(166, 227, 161, 0.2); border: 1px solid rgba(166, 227, 161, 0.5); color: var(--accent-2); padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .toast { position: fixed; right: 16px; bottom: 16px; padding: 12px 14px; border-radius: 10px; background: #0f1630; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 14px 28px rgba(0,0,0,0.35); display:none; }
+    .danger { color: var(--danger); }
+    .visually-hidden { position:absolute !important; height:1px; width:1px; overflow:hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Lista mailingowa uczniów</h1>
+      <span class="badge" id="countBadge">0 zapisów</span>
+    </header>
+
+    <section class="card form-card" aria-labelledby="form-title">
+      <h2 id="form-title" style="margin:0 0 6px 0; font-size:18px;">Zapisz się</h2>
+      <p class="muted" style="margin:0 0 8px 0;">Podaj adres e‑mail, aby otrzymywać ważne informacje (terminy, ogłoszenia, materiały).</p>
+
+      <form id="signupForm" novalidate>
+        <div class="row">
+          <div style="flex: 1 1 280px; min-width:260px;">
+            <label for="email">Adres e‑mail</label>
+            <input id="email" name="email" type="email" placeholder="np. jan.kowalski@szkola.pl" required autocomplete="email" />
+          </div>
+        </div>
+
+        <!-- Honeypot (anty‑spam) -->
+        <div class="visually-hidden" aria-hidden="true">
+          <label for="hp">Zostaw to pole puste</label>
+          <input id="hp" name="hp" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="row" style="align-items:center;">
+          <label style="display:flex; gap:10px; align-items:flex-start;">
+            <input id="consent" type="checkbox" required />
+            <span class="note">Wyrażam zgodę na przetwarzanie mojego adresu e‑mail w celu wysyłki informacji organizacyjnych. Administrator: nauczyciel/placówka. Zgoda dobrowolna, możesz ją w każdej chwili wycofać.</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Zapisz adres</button>
+          <button type="button" id="copyAll" class="btn secondary" title="Skopiuj wszystkie e‑maile do schowka">Skopiuj wszystkie</button>
+          <button type="button" id="exportCsv" class="btn secondary" title="Pobierz plik CSV">Eksport CSV</button>
+        </div>
+
+        <p id="errorMsg" class="note danger" role="alert" aria-live="polite" style="display:none;"></p>
+        <p class="note">Wskazówka: tę stronę możesz wysłać uczniom jako link lub wyświetlić kod QR do zeskanowania.</p>
+      </form>
+    </section>
+
+    <section class="card list-card" aria-labelledby="list-title">
+      <h2 id="list-title" style="margin:0 0 6px 0; font-size:18px;">Zapisane adresy</h2>
+      <div class="muted" style="font-size:14px;">Dane są zapisywane lokalnie w przeglądarce (localStorage). Tylko Ty je widzisz na tym urządzeniu.</div>
+      <table id="emailsTable" aria-describedby="list-title">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>E‑mail</th>
+            <th>Data</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <details class="card" style="margin-top:18px; padding:14px;">
+      <summary style="cursor:pointer;">Integracja (opcjonalnie): wysyłka do Formspree / webhook</summary>
+      <div class="note" style="margin-top:10px;">
+        Jeśli chcesz, aby zgłoszenia trafiały do skrzynki e‑mail lub arkusza przez webhook, wstaw adres endpointu w zmiennej <code>FORM_ENDPOINT</code> w skrypcie poniżej. Domyślnie zapisy trafiają tylko do tej przeglądarki.
+      </div>
+    </details>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // === KONFIGURACJA (opcjonalnie) ===
+    // Wstaw tu adres z Formspree (np. "https://formspree.io/f/xxxx") albo URL webhooka (np. Make/Zapier):
+    const FORM_ENDPOINT = ""; // zostaw puste, jeśli nie używasz
+
+    // === POMOCNICZE ===
+    const LS_KEY = "student_emails_v1";
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    const showToast = (msg) => {
+      const t = $('#toast');
+      t.textContent = msg; t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 2200);
+    };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+    function loadList() {
+      try {
+        const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        return Array.isArray(arr) ? arr : [];
+      } catch { return []; }
+    }
+
+    function saveList(list) {
+      localStorage.setItem(LS_KEY, JSON.stringify(list));
+      updateUI();
+    }
+
+    function updateUI() {
+      const list = loadList();
+      const tbody = $('#emailsTable tbody');
+      tbody.innerHTML = '';
+      list.forEach((row, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${row.email}</td>
+          <td>${new Date(row.ts).toLocaleString()}</td>
+          <td><button class="btn" data-remove="${row.email}">Usuń</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      $('#countBadge').textContent = `${list.length} zapisów`;
+    }
+
+    async function sendToEndpoint(payload) {
+      if (!FORM_ENDPOINT) return { ok: true, skipped: true };
+      try {
+        const res = await fetch(FORM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        return { ok: res.ok };
+      } catch (e) {
+        return { ok: false, error: e?.message || 'Network error' };
+      }
+    }
+
+    // === LOGIKA FORMULARZA ===
+    $('#signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#errorMsg').style.display = 'none';
+
+      const email = $('#email').value.trim();
+      const hp = $('#hp').value.trim();
+      const consent = $('#consent').checked;
+
+      if (hp) return; // honeypot: ignoruj boty
+      if (!emailRegex.test(email)) {
+        return showError('Podaj poprawny adres e‑mail.');
+      }
+      if (!consent) {
+        return showError('Musisz wyrazić zgodę, aby się zapisać.');
+      }
+
+      const list = loadList();
+      if (list.some(r => r.email.toLowerCase() === email.toLowerCase())) {
+        showToast('Ten adres jest już na liście.');
+        $('#email').value = '';
+        return;
+      }
+
+      const record = { email, ts: Date.now() };
+
+      // Wyślij (opcjonalnie) do zewnętrznego endpointu
+      const res = await sendToEndpoint(record);
+      if (res.ok) {
+        list.push(record);
+        saveList(list);
+        showToast('Zapisano!');
+        $('#email').value = '';
+        $('#email').focus();
+      } else {
+        showError('Nie udało się wysłać do endpointu. Spróbuj ponownie lub zostaw puste FORM_ENDPOINT.');
+      }
+    });
+
+    function showError(msg) {
+      const el = $('#errorMsg');
+      el.textContent = msg; el.style.display = 'block';
+    }
+
+    // Delegacja dla przycisków "Usuń"
+    $('#emailsTable').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-remove]');
+      if (!btn) return;
+      const email = btn.getAttribute('data-remove');
+      const list = loadList().filter(r => r.email !== email);
+      saveList(list);
+      showToast('Usunięto wpis');
+    });
+
+    // Kopiowanie wszystkich e‑maili
+    $('#copyAll').addEventListener('click', async () => {
+      const list = loadList();
+      const text = list.map(r => r.email).join(', ');
+      if (!text) return showToast('Brak danych do skopiowania');
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Skopiowano do schowka');
+      } catch { showToast('Nie udało się skopiować'); }
+    });
+
+    // Eksport CSV
+    $('#exportCsv').addEventListener('click', () => {
+      const list = loadList();
+      if (!list.length) return showToast('Brak danych do eksportu');
+      const header = 'email,data';
+      const rows = list.map(r => `${r.email},"${new Date(r.ts).toISOString()}"`);
+      const csv = [header, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `maile_uczniow_${date}.csv`;
+      document.body.appendChild(a); a.click();
+      requestAnimationFrame(() => { URL.revokeObjectURL(url); a.remove(); });
+    });
+
+    // Inicjalizacja
+    updateUI();
+  </script>
+</body>
+</html>
